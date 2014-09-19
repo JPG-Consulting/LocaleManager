@@ -7,6 +7,7 @@ use LocaleManager\LocaleManager;
 use LocaleManager\LocaleManagerAwareInterface;
 use Zend\I18n\Translator\TranslatorAwareInterface;
 use Zend\Config\Processor\Translator;
+use LocaleManager\Listener\LocaleManagerListener;
 
 class LocaleManagerFactory implements FactoryInterface
 {
@@ -18,6 +19,10 @@ class LocaleManagerFactory implements FactoryInterface
         
         $localeManager = new LocaleManager( $config );
         $localeManager->setServiceManager( $serviceLocator );
+        
+        if ($serviceLocator->has('Application')) {
+            $serviceLocator->get('Application')->getEventManager()->attach( new LocaleManagerListener() );
+        }
         
         // --- Start Router Config ---
         $router = $serviceLocator->get('Router');

@@ -26,6 +26,12 @@ namespace LocaleManager\Storage;
 
 interface StorageInterface
 {
+    /**
+     * Get all available locales.
+     * 
+     * @return array
+     */
+    public function getAvailableLocales();
     
     /**
      * Check if the locale is available.

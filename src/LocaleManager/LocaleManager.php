@@ -60,11 +60,11 @@ class LocaleManager implements ServiceManagerAwareInterface
     protected $options;
     
     /**
-     * The adapter to access locales.
+     * The storage to access locales.
      * 
      * @var unknown
      */
-    protected $adapter;
+    protected $storage;
     
     /**
      * Constructor.
@@ -76,11 +76,11 @@ class LocaleManager implements ServiceManagerAwareInterface
         $this->options = $options;
     }
     
-    protected function initAdapter()
+    protected function initStorage()
     {
         
-        if (!$this->adapter) {
-            // Get the configuration options for the adapter
+        if (!$this->storage) {
+            // Get the configuration options for the storage
         	if (isset($this->options['storage'])) {
         	    $config = $this->options['storage'];
         	    // Free some memory as we no longer need this
@@ -91,18 +91,18 @@ class LocaleManager implements ServiceManagerAwareInterface
         	
         	$config['locales'] = isset($this->options['locales']) ? $this->options['locales'] : array(); 
         	
-        	$adapterClass = isset($config['type']) ? $config['type'] : '\LocaleManager\Storage\DefaultStorage';
-        	if (!class_exists($adapterClass)) {
-        	    switch ( strtolower($adapterClass) )
+        	$storageClass = isset($config['type']) ? $config['type'] : '\LocaleManager\Storage\DefaultStorage';
+        	if (!class_exists($storageClass)) {
+        	    switch ( strtolower($storageClass) )
         	    {
         	    	//case 'db':
-        	    	//    $adapterClass = '\LocaleManager\Storage\DbStorage';
+        	    	//    $storageClass = '\LocaleManager\Storage\DbStorage';
         	    	//    break;
         	    	case 'default':
-        	    	    $adapterClass = '\LocaleManager\Storage\DefaultStorage';
+        	    	    $storageClass = '\LocaleManager\Storage\DefaultStorage';
         	    	    break;
         	    	//case 'doctrine':
-        	    	//    $adapterClass = '\LocaleManager\Storage\DoctrineStorage';
+        	    	//    $storageClass = '\LocaleManager\Storage\DoctrineStorage';
         	    	//    break;
         	    	default:
         	    	    // TODO: Throw exception
@@ -110,8 +110,8 @@ class LocaleManager implements ServiceManagerAwareInterface
         	}
         	
         	// Obtain an instance
-        	$factory = sprintf('%s::factory', $adapterClass);
-        	$this->adapter = call_user_func($factory, $config);        	
+        	$factory = sprintf('%s::factory', $storageClass);
+        	$this->storage = call_user_func($factory, $config);        	
         }     	
     }
     
@@ -230,18 +230,30 @@ class LocaleManager implements ServiceManagerAwareInterface
     }
     
     /**
+     * Get all available locales.
+     *
+     * @return array
+     */
+    public function getAvailableLocales()
+    {
+        $this->initStorage();
+         
+        return $this->storage->getAvailableLocales();
+    }
+    
+    /**
      * Check if the locale is available.
      * 
      * @param string $locale
      */
     public function has( $locale )
     {
-    	$this->initAdapter();
+    	$this->initStorage();
     	
     	// Normalize locale
     	$locale = str_replace('_', '-', $locale);
     	
-    	if ($this->adapter->has( $locale )) {
+    	if ($this->storage->has( $locale )) {
     	    return true;
     	}
     	

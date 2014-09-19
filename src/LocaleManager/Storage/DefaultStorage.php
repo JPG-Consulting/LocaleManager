@@ -62,6 +62,16 @@ class DefaultStorage implements StorageInterface
     }
     
     /**
+     * Get all available locales.
+     *
+     * @return array
+     */
+    public function getAvailableLocales()
+    {
+        return $this->locales;
+    }
+    
+    /**
      * Check if the locale is available.
      *
      * @param string $locale
