@@ -220,6 +220,7 @@ class LocaleTreeRouteStack extends TranslatorAwareTreeRouteStack implements Loca
 	    if (!isset($options['locale'])) {
 	        $options['locale'] = $this->localeManager->getLocale();
 	    }
+	    $options['locale'] = str_replace('-', '_', $options['locale']);
 	
 	    if (!isset($options['name'])) {
 	        throw new \Zend\Mvc\Router\Exception\Exception\InvalidArgumentException('Missing "name" option');
