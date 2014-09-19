@@ -138,16 +138,24 @@ class LocaleTreeRouteStack extends TranslatorAwareTreeRouteStack implements Loca
 	        if ($relativeUri[0] === '/') {
 	            $relativeUri = explode('/', $relativeUri, 3);
 	            $locale = $relativeUri[1];
-	             
+ 
 	            if ($locale) {
 	                // Check if it really is a locale
 	                if ($this->localeManager->has($locale)) {
 	                    $this->localeManager->setLocale($locale);
 	                    $baseUrlLength += strlen($locale) + 1;
+	                    
+	                    if ($baseUrlLength >= strlen($uri->getPath()) ) {
+	                    	// Make a permanent redirect with trailing slash
+	                    	$uri = $uri . '/';
+	                        header('Location: ' . $uri, true, 301);
+	                        exit();
+	                    }
 	                }
 	            }
 	        }
 	    }
+
 	    // End path detection of locale
 	
 	    if ($this->requestUri === null) {
