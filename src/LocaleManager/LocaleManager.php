@@ -73,6 +73,12 @@ class LocaleManager implements ServiceManagerAwareInterface
      */
     public function __construct(array $options = array())
     {
+        
+        if (isset($options['default_locale'])) {
+            $this->default = $options['default_locale'];
+            unset( $options['default_locale']);
+        }
+        
         $this->options = $options;
     }
     

@@ -21,9 +21,10 @@ We should first add the service factory to our service manager. This can be done
     
     'locale_manager' => array(
         'locales' => array('en-US', 'es-ES'),
+        'default_locale' => 'en-US',
     )
 
-In the example above we are telling the locale manager we've got two locales 'en-US' and 'es-ES'.
+In the example above we are telling the locale manager we've got two locales 'en-US' and 'es-ES' and we set the default locale to 'en-US'.
 
 ## Router ##
 
