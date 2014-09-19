@@ -1,0 +1,30 @@
+{
+    "name": "jpg-consulting/locale-manager",
+    "description": "Zend Framework 2 Locale Manager",
+    "type": "library",
+    "keywords": [
+        "framework",
+        "zf2",
+        "locale",
+        "localization",
+        "multilingual"
+    ],
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Juan Pedro Gonzalez",
+        }
+    ],
+    "require": {
+        "php": ">=5.3.23",
+        "zendframework/zendframework": "2.*",
+    },
+    "suggest": {
+        "ext-intl": "ext/intl for i18n features (included in default builds of PHP)",
+    },
+    "autoload": {
+        "psr-0": {
+            "LocaleManager\\": "src/"
+        }
+    },
+}
