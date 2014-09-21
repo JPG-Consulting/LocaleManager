@@ -28,8 +28,13 @@ use LocaleManager\Exception;
 use Zend\ServiceManager\ServiceManagerAwareInterface;
 use Zend\ServiceManager\ServiceManager;
 use Zend\I18n\Translator\TranslatorAwareInterface;
+use Zend\EventManager\EventManagerAwareInterface;
+use Zend\EventManager\EventManagerInterface;
+use Zend\EventManager\EventManager;
 
-class LocaleManager implements ServiceManagerAwareInterface
+class LocaleManager implements 
+    EventManagerAwareInterface, 
+    ServiceManagerAwareInterface
 {
     /**
      * The current runtime locale.
@@ -65,6 +70,12 @@ class LocaleManager implements ServiceManagerAwareInterface
      * @var unknown
      */
     protected $storage;
+    
+    /**
+     * @var EventManagerInterface
+     */
+    protected $eventManager;
+    
     
     /**
      * Constructor.
@@ -122,6 +133,42 @@ class LocaleManager implements ServiceManagerAwareInterface
     }
     
     /**
+     * Retrieve the event manager
+     *
+     * Lazy-loads an EventManager instance if none registered.
+     *
+     * @return EventManagerInterface
+     */
+    public function getEventManager()
+    {
+        if (!$this->eventManager instanceof EventManagerInterface) {
+            $this->setEventManager(new EventManager());
+        }
+        return $this->eventManager;
+    }
+    
+    /**
+     * Inject an EventManager instance
+     *
+     * @param  EventManagerInterface $eventManager
+     * @return void
+     */
+    public function setEventManager(EventManagerInterface $eventManager)
+    {
+        $eventManager->setIdentifiers(array(
+                __CLASS__,
+                get_class($this),
+                'locale_manager',
+        ));
+        $this->eventManager = $eventManager;
+        
+        // Attach default listeners
+        $this->getEventManager()->attach(LocaleEvent::EVENT_LOCALE_CHANGE, array($this, 'onLocaleChange'));
+        
+        return $this;
+    }
+    
+    /**
      * Set service manager
      *
      * @param ServiceManager $serviceManager
@@ -130,6 +177,32 @@ class LocaleManager implements ServiceManagerAwareInterface
     {
     	$this->serviceManager = $serviceManager;
     	return $this;
+    }
+    
+    /**
+     * Handle the localeChange event
+     *
+     * @return void
+     */
+    public function onLocaleChange(LocaleEvent $event)
+    {
+        $locale = str_replace('-', '_', $event->getLocale());
+        
+        // Set locale on known translators
+        if ($this->serviceManager->has('MvcTranslator')) {
+            $this->serviceManager->get('MvcTranslator')->setLocale( $locale );
+        }
+        if ($this->serviceManager->has('Zend\I18n\Translator\TranslatorInterface')) {
+            $this->serviceManager->get('Zend\I18n\Translator\TranslatorInterface')->setLocale( $locale );
+        }
+        if ($this->serviceManager->has('Translator')) {
+            $this->serviceManager->get('Translator')->setLocale( $locale );
+        }
+        
+        $router = $this->serviceManager->get('Router');
+        if ($router instanceof TranslatorAwareInterface) {
+            $router->getTranslator()->setLocale( $locale );
+        }
     }
     
     /**
@@ -165,27 +238,11 @@ class LocaleManager implements ServiceManagerAwareInterface
         // ISO locale format
         $this->locale = str_replace('_', '-', $locale);
         
-        // ZF2 styled locale
-        $locale = str_replace('-', '_', $locale);
-        
-        // Set locale on known translators
-        if ($this->serviceManager->has('MvcTranslator')) {
-            $this->serviceManager->get('MvcTranslator')->setLocale( $locale );
-        }
-        if ($this->serviceManager->has('Zend\I18n\Translator\TranslatorInterface')) {
-            $this->serviceManager->get('Zend\I18n\Translator\TranslatorInterface')->setLocale( $locale );
-        } 
-        if ($this->serviceManager->has('Translator')) {
-            $this->serviceManager->get('Translator')->setLocale( $locale );
-        }
-        
-        $router = $this->serviceManager->get('Router');
-        if ($router instanceof TranslatorAwareInterface) {
-        	$router->getTranslator()->setLocale( $locale );
-        }
-            
-        
-        // TODO: Trigger an event to alert of the locale change.
+        // Trigger event
+        $event = new LocaleEvent();
+        $event->setLocale( $this->locale );
+        $event->setDefaultLocale( $this->locale );
+        $this->getEventManager()->trigger(LocaleEvent::EVENT_LOCALE_CHANGE, $this, $event );
         
         return $this;
     }

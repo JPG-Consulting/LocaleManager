@@ -8,6 +8,7 @@ use LocaleManager\LocaleManagerAwareInterface;
 use Zend\I18n\Translator\TranslatorAwareInterface;
 use Zend\Config\Processor\Translator;
 use LocaleManager\Listener\LocaleManagerListener;
+use Zend\EventManager\EventManagerAwareInterface;
 
 class LocaleManagerFactory implements FactoryInterface
 {
@@ -19,6 +20,10 @@ class LocaleManagerFactory implements FactoryInterface
         
         $localeManager = new LocaleManager( $config );
         $localeManager->setServiceManager( $serviceLocator );
+        
+        if ($localeManager instanceof EventManagerAwareInterface) {
+            $localeManager->setEventManager( $serviceLocator->get('Application')->getEventManager() );
+        }
         
         if ($serviceLocator->has('Application')) {
             $serviceLocator->get('Application')->getEventManager()->attach( new LocaleManagerListener() );
