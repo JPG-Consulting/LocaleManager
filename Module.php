@@ -32,12 +32,14 @@ use Zend\ModuleManager\ModuleEvent;
 use Zend\Console\Console;
 use Zend\ModuleManager\Feature\BootstrapListenerInterface;
 use Zend\EventManager\EventInterface;
+use Zend\ModuleManager\Feature\ViewHelperProviderInterface;
 
 class Module implements
     AutoloaderProviderInterface,
     BootstrapListenerInterface,
     InitProviderInterface,
-    ServiceProviderInterface
+    ServiceProviderInterface, 
+    ViewHelperProviderInterface
 {
     
     public function init(ModuleManagerInterface $manager)
@@ -72,6 +74,15 @@ class Module implements
             'factories' => array(
                 'LocaleManager' => 'LocaleManager\Service\LocaleManagerFactory',
             )
+        );
+    }
+    
+    public function getViewHelperConfig()
+    {
+        return array(
+            'factories' => array(
+                'getLocale' => 'LocaleManager\View\Helper\Service\GetLocaleFactory',   		
+           ),
         );
     }
     
