@@ -191,13 +191,18 @@ class LocaleTreeRouteStack extends TreeRouteStack implements
      *
      * @return string
      */
-    public function getBaseUrlWithLocale()
+    public function getBaseUrlWithLocale( $locale = null)
     {
         // Inject the locale into the base url if necesary
         if ((strcasecmp($this->detectionMethod, 'path') === 0 ) && ($this->localeManager !== null) ) {
-            $locale = $this->localeManager->getLocale();
+            if ($locale === null) {
+                $locale = $this->localeManager->getLocale();
+            }
+            $locale = str_replace('_', '-', $locale);
             
-            if ((!empty($locale)) && (strcasecmp($locale, $this->localeManager->getDefaultLocale()) !== 0)) {
+            $default = str_replace('_', '-', $this->localeManager->getDefaultLocale());
+            
+            if ((!empty($locale)) && (strcasecmp($locale, $default) !== 0)) {
                 return $this->baseUrl . '/' . str_replace('_', '-', $locale);
             }	
         }
@@ -350,11 +355,11 @@ class LocaleTreeRouteStack extends TreeRouteStack implements
         if ($this->hasTranslator() && $this->isTranslatorEnabled()) {
             $options['translator']  = isset($options['translator']) ? $options['translator'] : $this->getTranslator();
             $options['text_domain'] = isset($options['text_domain']) ? $options['text_domain'] : $this->getTranslatorTextDomain();
-            $options['locale']      = isset($otions['locale']) ? $options['locale'] : str_replace('-', '_', $this->localeManager->getLocale() );
+            $options['locale']      = isset($options['locale']) ? $options['locale'] : str_replace('-', '_', $this->localeManager->getLocale() );
         }
         
         if (isset($options['only_return_path']) && $options['only_return_path']) {
-            return $this->getBaseUrlWithLocale() . $route->assemble(array_merge($this->defaultParams, $params), $options);
+            return $this->getBaseUrlWithLocale( $options['locale'] ) . $route->assemble(array_merge($this->defaultParams, $params), $options);
         }
 
         if (!isset($options['uri'])) {
@@ -375,7 +380,7 @@ class LocaleTreeRouteStack extends TreeRouteStack implements
             $uri = $options['uri'];
         }
 
-        $path = $this->getBaseUrlWithLocale() . $route->assemble(array_merge($this->defaultParams, $params), $options);
+        $path = $this->getBaseUrlWithLocale( $options['locale'] ) . $route->assemble(array_merge($this->defaultParams, $params), $options);
 
         if (isset($options['query'])) {
             $uri->setQuery($options['query']);
